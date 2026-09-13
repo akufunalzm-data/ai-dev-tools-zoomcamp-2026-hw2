@@ -3,3 +3,6 @@ frontend/dist/
 frontend/*.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts
+backend/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
