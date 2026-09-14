@@ -1,6 +1,7 @@
+/// <reference types="vite/client" />
+
 import {
   mockAssignmentRecommendation,
-  mockCustomers,
   mockNotifications,
   mockTables,
 } from "../data/mockData";
@@ -11,8 +12,34 @@ import type {
   SimulatedNotification,
 } from "../types/waitlist";
 
-export function getCustomers(): Promise<Customer[]> {
-  return Promise.resolve(mockCustomers.map((customer) => ({ ...customer })));
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
+
+interface ApiCustomer {
+  id: string;
+  name: string;
+  party_size: number;
+  phone_number: string;
+  status: Customer["status"];
+  created_at: string;
+}
+
+export async function getCustomers(): Promise<Customer[]> {
+  const response = await fetch(`${API_BASE_URL}/api/customers`);
+
+  if (!response.ok) {
+    throw new Error(`Unable to load customers (${response.status}).`);
+  }
+
+  const customers = (await response.json()) as ApiCustomer[];
+
+  return customers.map((customer) => ({
+    id: customer.id,
+    name: customer.name,
+    partySize: customer.party_size,
+    phoneNumber: customer.phone_number,
+    status: customer.status,
+    createdAt: customer.created_at,
+  }));
 }
 
 export function getTables(): Promise<RestaurantTable[]> {
