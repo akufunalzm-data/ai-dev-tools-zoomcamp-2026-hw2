@@ -3,7 +3,6 @@
 import {
   mockAssignmentRecommendation,
   mockNotifications,
-  mockTables,
 } from "../data/mockData";
 import type {
   AssignmentRecommendation,
@@ -21,6 +20,13 @@ interface ApiCustomer {
   phone_number: string;
   status: Customer["status"];
   created_at: string;
+}
+
+interface ApiTable {
+  id: string;
+  table_number: string;
+  capacity: number;
+  available: boolean;
 }
 
 export async function getCustomers(): Promise<Customer[]> {
@@ -42,8 +48,21 @@ export async function getCustomers(): Promise<Customer[]> {
   }));
 }
 
-export function getTables(): Promise<RestaurantTable[]> {
-  return Promise.resolve(mockTables.map((table) => ({ ...table })));
+export async function getTables(): Promise<RestaurantTable[]> {
+  const response = await fetch(`${API_BASE_URL}/api/tables`);
+
+  if (!response.ok) {
+    throw new Error(`Unable to load tables (${response.status}).`);
+  }
+
+  const tables = (await response.json()) as ApiTable[];
+
+  return tables.map((table) => ({
+    id: table.id,
+    tableNumber: table.table_number,
+    capacity: table.capacity,
+    available: table.available,
+  }));
 }
 
 export function getAssignmentRecommendation(): Promise<AssignmentRecommendation | null> {
