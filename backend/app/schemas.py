@@ -48,6 +48,11 @@ class AssignmentCreate(BaseModel):
     table_id: str
 
 
+class AssignmentResponse(BaseModel):
+    customer: Customer
+    table: RestaurantTable
+
+
 class SimulatedNotification(BaseModel):
     customer_name: str
     phone_number: str
