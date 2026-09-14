@@ -1,9 +1,5 @@
 /// <reference types="vite/client" />
 
-import {
-  mockAssignmentRecommendation,
-  mockNotifications,
-} from "../data/mockData";
 import type {
   AssignmentRecommendation,
   Customer,
@@ -27,6 +23,20 @@ interface ApiTable {
   table_number: string;
   capacity: number;
   available: boolean;
+}
+
+interface ApiAssignmentRecommendation {
+  customer: ApiCustomer;
+  table: ApiTable;
+  rationale: string;
+}
+
+interface ApiNotification {
+  customer_name: string;
+  phone_number: string;
+  table_number: string;
+  message: string;
+  timestamp: string;
 }
 
 export async function getCustomers(): Promise<Customer[]> {
@@ -65,20 +75,55 @@ export async function getTables(): Promise<RestaurantTable[]> {
   }));
 }
 
-export function getAssignmentRecommendation(): Promise<AssignmentRecommendation | null> {
-  if (!mockAssignmentRecommendation) {
-    return Promise.resolve(null);
+export async function getAssignmentRecommendation(): Promise<AssignmentRecommendation | null> {
+  const response = await fetch(`${API_BASE_URL}/api/assignments/recommendation`);
+
+  if (response.status === 204) {
+    return null;
   }
 
-  return Promise.resolve({
-    ...mockAssignmentRecommendation,
-    customer: { ...mockAssignmentRecommendation.customer },
-    table: { ...mockAssignmentRecommendation.table },
-  });
+  if (!response.ok) {
+    throw new Error(
+      `Unable to load assignment recommendation (${response.status}).`,
+    );
+  }
+
+  const recommendation =
+    (await response.json()) as ApiAssignmentRecommendation;
+
+  return {
+    customer: {
+      id: recommendation.customer.id,
+      name: recommendation.customer.name,
+      partySize: recommendation.customer.party_size,
+      phoneNumber: recommendation.customer.phone_number,
+      status: recommendation.customer.status,
+      createdAt: recommendation.customer.created_at,
+    },
+    table: {
+      id: recommendation.table.id,
+      tableNumber: recommendation.table.table_number,
+      capacity: recommendation.table.capacity,
+      available: recommendation.table.available,
+    },
+    rationale: recommendation.rationale,
+  };
 }
 
-export function getNotifications(): Promise<SimulatedNotification[]> {
-  return Promise.resolve(
-    mockNotifications.map((notification) => ({ ...notification })),
-  );
+export async function getNotifications(): Promise<SimulatedNotification[]> {
+  const response = await fetch(`${API_BASE_URL}/api/notifications`);
+
+  if (!response.ok) {
+    throw new Error(`Unable to load notifications (${response.status}).`);
+  }
+
+  const notifications = (await response.json()) as ApiNotification[];
+
+  return notifications.map((notification) => ({
+    customerName: notification.customer_name,
+    phoneNumber: notification.phone_number,
+    tableNumber: notification.table_number,
+    message: notification.message,
+    timestamp: notification.timestamp,
+  }));
 }
